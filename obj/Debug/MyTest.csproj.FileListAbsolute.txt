@@ -1,0 +1,10 @@
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.Properties.Resources.resources
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.csproj.GenerateResource.Cache
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\bin\Debug\MyTest.exe
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\bin\Debug\MyTest.pdb
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.EUDCtoImage.resources
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.exe
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.pdb
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.csprojResolveAssemblyReference.cache
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeSearch.resources
+c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeBuilder.resources
