@@ -15,26 +15,26 @@ namespace MyTest
 {
     public partial class MazeBuilder : Form
     {
-        private int[,] _PathMap = null;
-        private Point[,] _LinkPoint = null;
+        private MapPoint[,] _LinkMap = null;
         private Image _ImageMap = null;
 
         private int ScaleLevel = 8;
-        Pen _DrawPen;
-        Random _Rand = new Random();
+        private Pen _DrawPen;
+        private Random _Rand = new Random();
 
         public MazeBuilder()
         {
             InitializeComponent();
-            buttonCancel.Enabled = false;
+            buttonClear.Enabled = false;
             _DrawPen = new Pen(Color.White, ScaleLevel) { Alignment = System.Drawing.Drawing2D.PenAlignment.Center };
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             _ImageMap = null;
-            _PathMap = null;
-            buttonCancel.Enabled = false;
+            _LinkMap = null;
+            buttonSave.Enabled = false;
+            buttonClear.Enabled = false;
             buttonBuild.Enabled = true;
             picMaze.Invalidate();
         }
@@ -47,74 +47,91 @@ namespace MyTest
 
         private void buttonBuild_Click(object sender, EventArgs e)
         {
-            int mapWidth = picMaze.Width / ScaleLevel;
-            int mapHeight = picMaze.Height / ScaleLevel;
+            int imageWidth = picMaze.Width;
+            int imageHeight = picMaze.Height;
+            int mapWidth = (imageWidth / ScaleLevel) - 2;
+            int mapHeight = (imageHeight / ScaleLevel) - 2;
+            mapWidth -= (mapWidth + 1) % 2;
+            mapHeight -= (mapHeight + 1) % 2;
 
-            _PathMap = new int[mapWidth, mapHeight];
-            _LinkPoint = new Point[mapWidth, mapHeight];
-            _ImageMap = new Bitmap(picMaze.Width, picMaze.Height);
+            int paddingHorizontal = (int)((imageWidth - mapWidth * ScaleLevel) / 2 * 1.5);
+            int paddingVertical = (int)((imageHeight - mapHeight * ScaleLevel) / 2 * 1.5);
+
+            _LinkMap = new MapPoint[mapWidth, mapHeight];
+            _ImageMap = new Bitmap(imageWidth, imageHeight);
 
             Stack<Point> dfs = new Stack<Point>();
             Point originPoint = new Point(0, 0);
 
             dfs.Push(originPoint);
-            _PathMap[originPoint.X, originPoint.Y] = 1;
-            _LinkPoint[originPoint.X, originPoint.Y] = new Point(-1, 0);
+            _LinkMap[originPoint.X, originPoint.Y] = new MapPoint()
+            {
+                LinkPoint = new Point(-4, 0),
+                Visit = true
+            };
 
-            int dr = 0;
-            bool exit = false;
-
+            bool exitBuilded = false;
             using (Graphics g = Graphics.FromImage(_ImageMap))
             {
+                g.Clear(Color.Black);
+                g.TranslateTransform(paddingHorizontal, paddingVertical);
                 while (dfs.Count > 0)
                 {
                     Point pt = dfs.Pop();
                     int x = pt.X;
                     int y = pt.Y;
 
-                    List<Point> spts = new List<Point> { new Point(x + 2, y), new Point(x - 2, y), new Point(x, y + 2), new Point(x, y - 2) };
+                    List<Point> nextPoints = new List<Point> { new Point(x + 2, y), new Point(x - 2, y), new Point(x, y + 2), new Point(x, y - 2) };
                     //List<Point> spts = new List<Point>() { new Point(x + 2, y), new Point(x - 2, y), new Point(x, y + 2), new Point(x, y - 2),
                     //                                       new Point(x + 2, y+2), new Point(x - 2, y-2), new Point(x-2, y + 2), new Point(x+2, y - 2)};
 
-                    while (spts.Count > 0)
+                    while (nextPoints.Count > 0)
                     {
-                        int idx = _Rand.Next(spts.Count);
-                        Point spt = spts[idx];
+                        int idx = _Rand.Next(nextPoints.Count);
+                        Point nextPoint = nextPoints[idx];
 
-                        spts.RemoveAt(idx);
+                        nextPoints.RemoveAt(idx);
 
-                        int sx = spt.X;
-                        int sy = spt.Y;
-                        if (sx >= 0 && sx < mapWidth && sy >= 0 && sy < mapHeight && _PathMap[sx, sy] == 0)
+                        int nextX = nextPoint.X;
+                        int nextY = nextPoint.Y;
+                        if (nextX >= 0 && nextX < mapWidth && nextY >= 0 && nextY < mapHeight && !_LinkMap[nextX, nextY].Visit)
                         {
-                            _LinkPoint[sx, sy] = pt;
-                            dfs.Push(spt);
-
-                        }
-
-                        _PathMap[x, y] = 1;
-
-                        g.DrawLine(_DrawPen, new Point(_LinkPoint[x, y].X * ScaleLevel + ScaleLevel, _LinkPoint[x, y].Y * ScaleLevel + ScaleLevel), new Point(x * ScaleLevel + ScaleLevel, y * ScaleLevel + ScaleLevel));
-
-                        if (x == mapWidth - 1 && !exit)
-                        {
-                            exit = true;
-                            g.DrawLine(_DrawPen, new Point(x * ScaleLevel + ScaleLevel * 5, y * ScaleLevel + ScaleLevel), new Point(x * ScaleLevel + ScaleLevel, y * ScaleLevel + ScaleLevel));
+                            _LinkMap[nextX, nextY].LinkPoint = pt;
+                            dfs.Push(nextPoint);
                         }
                     }
 
-                    dr++;
-                    if (dr > 1)
+                    _LinkMap[x, y].Visit = true;
+                    g.DrawLine(_DrawPen, new Point(_LinkMap[x, y].LinkPoint.X * ScaleLevel, _LinkMap[x, y].LinkPoint.Y * ScaleLevel), new Point(x * ScaleLevel, y * ScaleLevel));
+
+                    if (x == mapWidth - 1 && !exitBuilded)
                     {
-                        picMaze.Refresh();
-                        dr = 0;
+                        exitBuilded = true;
+                        g.DrawLine(_DrawPen, new Point(x * ScaleLevel, y * ScaleLevel), new Point(x * ScaleLevel + paddingHorizontal, y * ScaleLevel));
                     }
+
+                    picMaze.Refresh();
                 }
             }
 
-            buttonCancel.Enabled = true;
+            buttonSave.Enabled = true;
+            buttonClear.Enabled = true;
             buttonBuild.Enabled = false;
             picMaze.Invalidate();
+        }
+
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            if (_ImageMap != null && ImageFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                _ImageMap.Save(ImageFileDialog.FileName, ImageFormat.Png);
+            }
+        }
+
+        public struct MapPoint
+        {
+            public Point LinkPoint { get; set; }
+            public bool Visit { get; set; }
         }
     }
 }

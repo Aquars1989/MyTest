@@ -15,9 +15,9 @@ namespace MyTest
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new EUDCtoImage());
+            Application.Run(new EUDCtoImage());
             //Application.Run(new MazeSearch());
-            Application.Run(new MazeBuilder());
+            //Application.Run(new MazeBuilder());
         }
     }
 }

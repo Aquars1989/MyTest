@@ -91,7 +91,7 @@ namespace MyTest
             this.labelTo.Name = "labelTo";
             this.labelTo.Size = new System.Drawing.Size(110, 16);
             this.labelTo.TabIndex = 5;
-            this.labelTo.Text = "From(1111,1111)";
+            this.labelTo.Text = "To(1111,1111)";
             // 
             // buttonImport
             // 
@@ -106,7 +106,6 @@ namespace MyTest
             // 
             // ImageFileDialog
             // 
-            this.ImageFileDialog.FileName = "openFileDialog1";
             this.ImageFileDialog.Filter = "Image|*.jpg;*.png;*.bmp;*.gif";
             // 
             // MazeSearch

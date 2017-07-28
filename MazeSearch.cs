@@ -45,8 +45,6 @@ namespace MyTest
             }
         }
 
-      
-
         public MazeSearch()
         {
             InitializeComponent();
@@ -57,14 +55,14 @@ namespace MyTest
         {
             SetMode(0);
         }
-        
+
         private void picMaze_Paint(object sender, PaintEventArgs e)
         {
             if (_PathPots != null)
             {
                 foreach (Point pt in _PathPots)
                 {
-                    e.Graphics.FillRectangle(Brushes.Red, pt.X - 1, pt.Y - 1, 2, 2);
+                    e.Graphics.FillRectangle(Brushes.Red, pt.X - 2, pt.Y - 2, 4, 4);
                 }
             }
 
@@ -81,7 +79,6 @@ namespace MyTest
             //        }
             //    }
             //}
-
 
             if (Point1.X >= 0)
             {
@@ -100,9 +97,12 @@ namespace MyTest
             {
                 case System.Windows.Forms.MouseButtons.Left:
                     Point1 = _Map[e.X, e.Y] == 0 ? e.Location : new Point(-1, -1);
+                    _PathPots = null;
+                    //BuildPath();
                     break;
                 case System.Windows.Forms.MouseButtons.Right:
                     Point2 = _Map[e.X, e.Y] == 0 ? e.Location : new Point(-1, -1);
+                    _PathPots = null;
                     break;
             }
         }
@@ -111,79 +111,39 @@ namespace MyTest
         {
             if (Point1.X < 0 || Point2.X < 0) return;
 
-            int wid = _Map.GetLength(0);
-            int hei = _Map.GetLength(1);
+            int mapWidth = _Map.GetLength(0);
+            int mapHeight = _Map.GetLength(1);
 
-            _PathMap = new int[wid, hei];
-            Stack<Point> dfs = new Stack<Point>();
-            dfs.Push(Point2);
+            _PathMap = new int[mapWidth, mapHeight];
+            Queue<Point> bfs = new Queue<Point>();
+            bfs.Enqueue(Point2);
             _PathMap[Point2.X, Point2.Y] = 1;
 
-            int dr = 0;
-            while (dfs.Count > 0)
+            while (bfs.Count > 0)
             {
-                Point pt = dfs.Pop();
+                Point pt = bfs.Dequeue();
                 int x = pt.X;
                 int y = pt.Y;
 
-                if (pt.Equals(Point1)) break;
+                //if (pt.Equals(Point1)) break;
 
-                Point[] spts = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) };
+                Point[] nextPoints = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) };
                 //Point[] spts = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1),
                 //                             new Point(x + 1, y+1), new Point(x - 1, y-1), new Point(x-1, y + 1), new Point(x+1, y - 1)};
 
-                foreach (Point spt in spts)
+                foreach (Point nextPoint in nextPoints)
                 {
-                    int sx = spt.X;
-                    int sy = spt.Y;
-                    if (sx >= 0 && sx < wid && sy >= 0 && sy < hei && _Map[sx, sy] == 0 && _PathMap[sx, sy] == 0)
+                    int nextX = nextPoint.X;
+                    int nextY = nextPoint.Y;
+                    if (nextX >= 0 && nextX < mapWidth && nextY >= 0 && nextY < mapHeight && _Map[nextX, nextY] == 0 && _PathMap[nextX, nextY] == 0)
                     {
-                        _PathMap[sx, sy] = _PathMap[x, y] + 1;
-                        dfs.Push(spt);
+                        _PathMap[nextX, nextY] = _PathMap[x, y] + 1;
+                        bfs.Enqueue(nextPoint);
                     }
                 }
-                dr++;
-                //if (dr > 10)
-                //{
-                //    oPic.Refresh();
-                //    dr = 0;
-                //}
             }
 
-            if (_PathMap[Point1.X, Point1.Y] == 0) _PathPots = null;
-
-            _PathPots = new List<Point>();
-            _PathPots.Add(Point1);
-            Point fpt = Point1;
-
-            while (_PathMap[fpt.X, fpt.Y] > 1)
-            {
-                int x = fpt.X;
-                int y = fpt.Y;
-
-                Point[] spts = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) };
-                //Point[] spts = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) ,
-                //                             new Point(x + 1, y+1), new Point(x - 1, y-1), new Point(x-1, y + 1), new Point(x+1, y - 1)};
-
-                bool fid = false;
-                foreach (Point spt in spts)
-                {
-                    int sx = spt.X;
-                    int sy = spt.Y;
-                    if (sx >= 0 && sx < wid && sy >= 0 && sy < hei && _PathMap[sx, sy] == _PathMap[x, y] - 1)
-                    {
-                        _PathPots.Add(spt);
-                        fpt = spt;
-                        fid = true;
-                        break;
-                    }
-                }
-                if (!fid)
-                {
-                    return;
-                }
-            }
-            picMaze.Invalidate();
+            BuildPath();
         }
 
         private void buttonImport_Click(object sender, EventArgs e)
@@ -211,10 +171,9 @@ namespace MyTest
             unsafe
             {
                 _Map = new int[img.Width, img.Height];
-                Rectangle rtg = new Rectangle(0, 0, img.Width, img.Height);
-                BitmapData bd = img.LockBits(rtg, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-                IntPtr ip = bd.Scan0;
-                byte* p = (byte*)ip.ToPointer();
+                BitmapData mapdata = img.LockBits(new Rectangle(0, 0, img.Width, img.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+                IntPtr mapIntptr = mapdata.Scan0;
+                byte* p = (byte*)mapIntptr.ToPointer();
                 for (int j = 0; j < img.Height; j++)
                 {
                     for (int i = 0; i < img.Width; i++)
@@ -227,8 +186,53 @@ namespace MyTest
                     }
                 }
 
-                img.UnlockBits(bd);
+                img.UnlockBits(mapdata);
             }
+        }
+
+        private void BuildPath()
+        {
+            if (_PathMap == null || Point1.X < 0 || _PathMap[Point1.X, Point1.Y] == 0)
+            {
+                _PathPots = null;
+                return;
+            }
+
+            int mapWidth = _PathMap.GetLength(0);
+            int mapHeight = _PathMap.GetLength(1);
+
+            _PathPots = new List<Point>();
+            _PathPots.Add(Point1);
+
+            Point checkPoint = Point1;
+            while (_PathMap[checkPoint.X, checkPoint.Y] != 1)
+            {
+                int x = checkPoint.X;
+                int y = checkPoint.Y;
+
+                Point[] nextPoints = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) };
+                //Point[] spts = new Point[] { new Point(x + 1, y), new Point(x - 1, y), new Point(x, y + 1), new Point(x, y - 1) ,
+                //                             new Point(x + 1, y+1), new Point(x - 1, y-1), new Point(x-1, y + 1), new Point(x+1, y - 1)};
+
+                bool find = false;
+                foreach (Point nextPoint in nextPoints)
+                {
+                    int nextX = nextPoint.X;
+                    int nextY = nextPoint.Y;
+                    if (nextX >= 0 && nextX < mapWidth && nextY >= 0 && nextY < mapHeight && _PathMap[nextX, nextY] == _PathMap[x, y] - 1)
+                    {
+                        _PathPots.Add(nextPoint);
+                        checkPoint = nextPoint;
+                        find = true;
+                        break;
+                    }
+                }
+                if (!find)
+                {
+                    return;
+                }
+            }
+            picMaze.Invalidate();
         }
 
         private void SetMode(int mode)
@@ -260,6 +264,5 @@ namespace MyTest
                     break;
             }
         }
-
     }
 }
