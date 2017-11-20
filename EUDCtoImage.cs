@@ -15,12 +15,12 @@ namespace MyTest
     public partial class EUDCtoImage : Form
     {
         private Dictionary<int, Image> _EUDCImg = new Dictionary<int, Image>();
-        
+
         public EUDCtoImage()
         {
             InitializeComponent();
         }
-        
+
         private void buttonExport_Click(object sender, EventArgs e)
         {
             _EUDCImg.Clear();
@@ -36,7 +36,7 @@ namespace MyTest
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixel;
 
                 //0xF8FF 
-                for (int i = 0xE000; i <= 0xE310; i++)
+                for (int i = 0xE000; i <= 0xF848; i++)
                 {
                     string c = ((char)i).ToString();
 
@@ -95,7 +95,7 @@ namespace MyTest
                     {
                         drawLeft += (int)((font.Size - 6) / 4);
                     }
-
+                    
                     Image drawImage;
                     if (_EUDCImg.TryGetValue(code, out drawImage))
                     {

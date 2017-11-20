@@ -8,3 +8,5 @@ c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\My
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.csprojResolveAssemblyReference.cache
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeSearch.resources
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeBuilder.resources
+C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\bin\Debug\Lib2013.dll
+C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.SignTest.resources
