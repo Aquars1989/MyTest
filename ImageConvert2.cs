@@ -33,6 +33,7 @@ namespace MyTest
         private Bitmap _BaseImage = null;      //原始圖片
         private Bitmap _ScaleImage = null;     //預覽圖片
         private Bitmap _ConvertedImage = null; //預覽變更圖片
+        private int[,] _Map;
         private Rectangle _ImageRect = new Rectangle();
 
         public ImageConvert()
@@ -61,6 +62,7 @@ namespace MyTest
                 Size newSize = new Size((int)(_BaseImage.Width / scale), (int)(_BaseImage.Height / scale));
                 _ScaleImage = new Bitmap(_BaseImage, newSize); //產生縮小預覽圖片
                 _ConvertedImage = new Bitmap(_ScaleImage.Width, _ScaleImage.Height);
+                _Map = new int[_ScaleImage.Width, _ScaleImage.Height]; //快取配置圖
                 PickColor(_ScaleImage, _ConvertedImage, _PickInfos, 0);
                 SetImageSize();
             }
@@ -121,7 +123,6 @@ namespace MyTest
                         {
                             e.Graphics.FillEllipse(allowanceBrush, rectAllowance);
                         }
-                        Text = allowWid.ToString();
                     }
                     e.Graphics.DrawEllipse(Pens.Red, rectFull);
                     //e.Graphics.DrawString(pickInfo.Allowance.ToString(), _AllowanceFont, Brushes.Red, rectFull, _AllowanceFormat);
@@ -160,35 +161,28 @@ namespace MyTest
             splitContainer1.Invalidate(true);
         }
 
-        private void PickColor(Bitmap baseImage, Bitmap convertImage, List<PickInfo> pickInfos, int mode)
+        private void BuildMap(int[,] map, Bitmap baseImage, List<PickInfo> pickInfos, PickInfo main)
         {
             unsafe
             {
                 Rectangle rect = new Rectangle(0, 0, baseImage.Width, baseImage.Height);
-                int cot = baseImage.Width * baseImage.Height;
                 BitmapData baseData = baseImage.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-                BitmapData convertData = convertImage.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
                 IntPtr basePtr = baseData.Scan0;
-                IntPtr convertPtr = convertData.Scan0;
                 byte* baseP = (byte*)basePtr.ToPointer();
-                byte* convertP = (byte*)convertPtr.ToPointer();
 
-                for (int i = 0; i < cot; i++)
+                for (int y = 0; y < baseImage.Height; y++)
                 {
-                    byte r2 = convertP[2];
-                    byte g2 = convertP[1];
-                    byte b2 = convertP[0];
-                    bool gray = r2 == g2 && g2 == b2;
-                    if (mode == 0 || (mode > 0 && gray) || (mode < 0 && !gray))
+                    for (int x = 0; x < baseImage.Width; x++)
                     {
                         byte r = baseP[2];
                         byte g = baseP[1];
                         byte b = baseP[0];
-                        convertP[3] = baseP[3];
 
                         bool match = false;
                         foreach (var pickInfo in pickInfos)
                         {
+                            if (pickInfo == main) continue;
+
                             if (Math.Abs(pickInfo.Color.R - r) <= pickInfo.Allowance &&
                                 Math.Abs(pickInfo.Color.G - g) <= pickInfo.Allowance &&
                                 Math.Abs(pickInfo.Color.B - b) <= pickInfo.Allowance)
@@ -200,23 +194,140 @@ namespace MyTest
 
                         if (match)
                         {
-                            convertP[0] = b;
-                            convertP[1] = g;
-                            convertP[2] = r;
+                            map[x, y] = -1;
                         }
                         else
                         {
-                            byte v = (byte)((r + g + b) / 3);
-                            convertP[0] = v;
-                            convertP[1] = v;
-                            convertP[2] = v;
+                            int dR = Math.Abs(main.Color.R - r);
+                            int dG = Math.Abs(main.Color.G - g);
+                            int dB = Math.Abs(main.Color.B - b);
+                            map[x, y] = Math.Max(Math.Max(dR, dG), dB);
+                        }
+                        baseP += 4;
+                    }
+                }
+                baseImage.UnlockBits(baseData);
+            }
+        }
+
+        private void PickColor(Bitmap baseImage, Bitmap convertImage, List<PickInfo> pickInfos, int mode)
+        {
+            unsafe
+            {
+                Rectangle rect = new Rectangle(0, 0, baseImage.Width, baseImage.Height);
+                BitmapData baseData = baseImage.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                BitmapData convertData = convertImage.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                IntPtr basePtr = baseData.Scan0;
+                IntPtr convertPtr = convertData.Scan0;
+                byte* baseP = (byte*)basePtr.ToPointer();
+                byte* convertP = (byte*)convertPtr.ToPointer();
+
+                for (int y = 0; y < baseImage.Height; y++)
+                {
+                    for (int x = 0; x < baseImage.Width; x++)
+                    {
+                        byte r2 = convertP[2];
+                        byte g2 = convertP[1];
+                        byte b2 = convertP[0];
+                        bool gray = r2 == g2 && g2 == b2;
+                        if (mode == 0 || (mode > 0 && gray) || (mode < 0 && !gray))
+                        {
+                            byte r = baseP[2];
+                            byte g = baseP[1];
+                            byte b = baseP[0];
+                            convertP[3] = baseP[3];
+
+                            bool match = false;
+                            foreach (var pickInfo in pickInfos)
+                            {
+                                if (Math.Abs(pickInfo.Color.R - r) <= pickInfo.Allowance &&
+                                    Math.Abs(pickInfo.Color.G - g) <= pickInfo.Allowance &&
+                                    Math.Abs(pickInfo.Color.B - b) <= pickInfo.Allowance)
+                                {
+                                    match = true;
+                                    break;
+                                }
+                            }
+
+                            if (match)
+                            {
+                                convertP[0] = b;
+                                convertP[1] = g;
+                                convertP[2] = r;
+                            }
+                            else
+                            {
+                                byte v = (byte)((r + g + b) / 3);
+                                convertP[0] = v;
+                                convertP[1] = v;
+                                convertP[2] = v;
+                            }
+                        }
+
+                        convertP += 4;
+                        baseP += 4;
+                    }
+                }
+                baseImage.UnlockBits(baseData);
+                convertImage.UnlockBits(convertData);
+            }
+        }
+
+        private void PickColor(Bitmap baseImage, Bitmap convertImage, int[,] map, int oldVal, int newVal)
+        {
+            if (oldVal == newVal) return;
+
+            unsafe
+            {
+                Rectangle rect = new Rectangle(0, 0, baseImage.Width, baseImage.Height);
+                BitmapData baseData = baseImage.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                BitmapData convertData = convertImage.LockBits(rect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                IntPtr basePtr = baseData.Scan0;
+                IntPtr convertPtr = convertData.Scan0;
+                byte* baseP = (byte*)basePtr.ToPointer();
+                byte* convertP = (byte*)convertPtr.ToPointer();
+                bool plus = newVal > oldVal;
+                if (plus)
+                {
+                    for (int y = 0; y < baseImage.Height; y++)
+                    {
+                        for (int x = 0; x < baseImage.Width; x++)
+                        {
+                            if (map[x, y] >= 0 && map[x, y] > oldVal && map[x, y] <= newVal)
+                            {
+                                byte r = baseP[2];
+                                byte g = baseP[1];
+                                byte b = baseP[0];
+                                convertP[0] = b;
+                                convertP[1] = g;
+                                convertP[2] = r;
+                            }
+                            baseP += 4;
+                            convertP += 4;
                         }
                     }
-
-                    convertP += 4;
-                    baseP += 4;
                 }
-
+                else
+                {
+                    for (int y = 0; y < baseImage.Height; y++)
+                    {
+                        for (int x = 0; x < baseImage.Width; x++)
+                        {
+                            if (map[x, y] >= 0 && map[x, y] <= oldVal && map[x, y] > newVal)
+                            {
+                                byte r = baseP[2];
+                                byte g = baseP[1];
+                                byte b = baseP[0];
+                                byte v = (byte)((r + g + b) / 3);
+                                convertP[0] = v;
+                                convertP[1] = v;
+                                convertP[2] = v;
+                            }
+                            baseP += 4;
+                            convertP += 4;
+                        }
+                    }
+                }
                 baseImage.UnlockBits(baseData);
                 convertImage.UnlockBits(convertData);
             }
@@ -231,13 +342,11 @@ namespace MyTest
                 if (offset < 0) offset = 0;
                 else if (offset > 255) offset = 255;
 
-                if (pictInfo.Allowance == offset) return;
-                int mode = offset > pictInfo.Allowance ? 1 : -1;
-                pictInfo.Allowance = offset;
 
-                PickColor(_ScaleImage, _ConvertedImage, _PickInfos, mode);
+                PickColor(_ScaleImage, _ConvertedImage, _Map, pictInfo.Allowance, offset);
+                pictInfo.Allowance = offset;
                 splitContainer1.Panel1.Invalidate(_ImageRect, true);
-                splitContainer1.Panel2.Invalidate(_ImageRect, true);
+                splitContainer1.Panel2.Invalidate( true);
             }
             else
             {
@@ -287,23 +396,28 @@ namespace MyTest
                             PickColor(_ScaleImage, _ConvertedImage, _PickInfos, -1);
                             splitContainer1.Invalidate(true);
                             break;
-
                     }
                 }
                 else
                 {
-                    _MouseDown = true;
-                    _MouseDownPoint = e.Location;
-                    double scale = _ScaleImage.Width / (double)_ImageRect.Width;
-                    int x = (int)((e.X - _ImageRect.Left) * scale);
-                    int y = (int)((e.Y - _ImageRect.Top) * scale);
-                    Point pot = new Point(x, y);
+                    switch (e.Button)
+                    {
+                        case System.Windows.Forms.MouseButtons.Left:
+                            _MouseDown = true;
+                            _MouseDownPoint = e.Location;
+                            double scale = _ScaleImage.Width / (double)_ImageRect.Width;
+                            int x = (int)((e.X - _ImageRect.Left) * scale);
+                            int y = (int)((e.Y - _ImageRect.Top) * scale);
+                            Point pot = new Point(x, y);
 
-                    _PickInfos.Add(new PickInfo() { Allowance = 0, PickPoint = pot, ScalePoint = e.Location, Color = _ScaleImage.GetPixel(x, y) });
-                    _PickInfoIndex = _PickInfos.Count - 1;
+                            _PickInfos.Add(new PickInfo() { Allowance = 0, PickPoint = pot, ScalePoint = e.Location, Color = _ScaleImage.GetPixel(x, y) });
+                            _PickInfoIndex = _PickInfos.Count - 1;
 
-                    PickColor(_ScaleImage, _ConvertedImage, _PickInfos, 1);
-                    splitContainer1.Invalidate(true);
+                            BuildMap(_Map, _ScaleImage, _PickInfos, _PickInfos[_PickInfoIndex]);
+                            PickColor(_ScaleImage, _ConvertedImage, _Map, -1, 0);
+                            splitContainer1.Invalidate(true);
+                            break;
+                    }
                 }
             }
         }
