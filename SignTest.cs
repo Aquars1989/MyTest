@@ -68,7 +68,14 @@ namespace MyTest
                     _Write = false;
                     if (_LinePoints != null)
                     {
-                        _DrawPath.AddPolygon(GetLinePath(_LinePoints));
+                        if (_LinePoints.Count > 2)
+                        {
+                            _DrawPath.AddPolygon(GetLinePath(_LinePoints));
+                        }
+                        else
+                        {
+                            _Lines.Remove(_LinePoints);
+                        }
                         _LinePoints = null;
                     }
                     break;
@@ -80,7 +87,7 @@ namespace MyTest
             _SWatch.Restart();
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.FillPath(Brushes.Black, _DrawPath);
-            if (_LinePoints != null)
+            if (_LinePoints != null && _LinePoints.Count > 2)
             {
                 e.Graphics.FillPolygon(Brushes.Black, GetLinePath(_LinePoints), FillMode.Winding);
             }
@@ -141,15 +148,15 @@ namespace MyTest
                     writePots[0] = line[0];
                     for (int i = 1; i < line.Count; i++)
                     {
-                        writePots[i] = new Point(line[i].X - line[i - 1].X, line[i].Y - line[i - 1].Y);
+                        writePots[i] = new Point(line[i].X - line[i - 1].X, line[i].Y - line[i - 1].Y); //紀錄下個點的位移值以縮減資料大小
                         minVal = Math.Min(minVal, line[i].X);
                         minVal = Math.Min(minVal, line[i].Y);
                         maxVal = Math.Max(maxVal, line[i].X);
                         maxVal = Math.Max(maxVal, line[i].Y);
                     }
 
-                    bool byteType = minVal >= sbyte.MinValue && maxVal <= sbyte.MaxValue;
-                    msWriter.Write((short)(line.Count * (byteType ? 1 : -1)));
+                    bool byteType = minVal >= sbyte.MinValue && maxVal <= sbyte.MaxValue; //資料是否可用sbyte紀錄
+                    msWriter.Write((short)(line.Count * (byteType ? 1 : -1)));            //如可用sbyte紀錄,紀錄列數為正數,否為負數
                     for (int i = 0; i < writePots.Length; i++)
                     {
                         if (i > 0 && byteType)
@@ -185,13 +192,11 @@ namespace MyTest
                 byte[] block = new byte[1024];
                 try
                 {
-                    while (true)
+                    int bytesRead = gzip.Read(block, 0, block.Length);
+                    while (bytesRead > 0)
                     {
-                        int bytesRead = gzip.Read(block, 0, block.Length);
-                        if (bytesRead <= 0)
-                            break;
-                        else
-                            ms.Write(block, 0, bytesRead);
+                        ms.Write(block, 0, bytesRead);
+                        bytesRead = gzip.Read(block, 0, block.Length);
                     }
                 }
                 catch
@@ -279,7 +284,6 @@ namespace MyTest
                     result[i] = new PointF(offsetX1, offsetY1);
                     result[result.Length - i] = new PointF(offsetX2, offsetY2);
                 }
-
             }
             return result;
         }

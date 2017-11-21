@@ -15,7 +15,8 @@ namespace MyTest
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new SignTest());
+            Application.Run(new ImageConvert());
+            //Application.Run(new SignTest());
             //Application.Run(new MazeSearch());
             //Application.Run(new MazeBuilder());
         }

@@ -108,7 +108,7 @@ namespace MyTest
                     stringBuffer.Append(str[i]);
                 }
             }
-
+            
             if (stringBuffer.Length > 0)
             {
                 string drawPart = stringBuffer.ToString();
