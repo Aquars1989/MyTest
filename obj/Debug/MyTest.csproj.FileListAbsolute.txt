@@ -5,7 +5,6 @@ c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\bin\Debug\My
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.EUDCtoImage.resources
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.exe
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.pdb
-c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.csprojResolveAssemblyReference.cache
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeSearch.resources
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeBuilder.resources
 C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.SignTest.resources
