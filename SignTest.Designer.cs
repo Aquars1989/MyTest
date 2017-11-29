@@ -37,7 +37,8 @@
             // 
             // btnSave1
             // 
-            this.btnSave1.Location = new System.Drawing.Point(10, 85);
+            this.btnSave1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSave1.Location = new System.Drawing.Point(835, 45);
             this.btnSave1.Name = "btnSave1";
             this.btnSave1.Size = new System.Drawing.Size(85, 25);
             this.btnSave1.TabIndex = 0;
@@ -47,7 +48,8 @@
             // 
             // btnLoad1
             // 
-            this.btnLoad1.Location = new System.Drawing.Point(10, 115);
+            this.btnLoad1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoad1.Location = new System.Drawing.Point(835, 75);
             this.btnLoad1.Name = "btnLoad1";
             this.btnLoad1.Size = new System.Drawing.Size(85, 25);
             this.btnLoad1.TabIndex = 1;
@@ -57,7 +59,8 @@
             // 
             // btnLoad2
             // 
-            this.btnLoad2.Location = new System.Drawing.Point(10, 180);
+            this.btnLoad2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoad2.Location = new System.Drawing.Point(835, 140);
             this.btnLoad2.Name = "btnLoad2";
             this.btnLoad2.Size = new System.Drawing.Size(85, 25);
             this.btnLoad2.TabIndex = 3;
@@ -67,7 +70,8 @@
             // 
             // btnSave2
             // 
-            this.btnSave2.Location = new System.Drawing.Point(10, 150);
+            this.btnSave2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSave2.Location = new System.Drawing.Point(835, 110);
             this.btnSave2.Name = "btnSave2";
             this.btnSave2.Size = new System.Drawing.Size(85, 25);
             this.btnSave2.TabIndex = 2;
@@ -77,7 +81,8 @@
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(10, 50);
+            this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClear.Location = new System.Drawing.Point(835, 10);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(85, 25);
             this.btnClear.TabIndex = 4;

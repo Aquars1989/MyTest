@@ -8,7 +8,6 @@ c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\My
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeSearch.resources
 c:\users\aquars\documents\visual studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.MazeBuilder.resources
 C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.SignTest.resources
-C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.ImageConvert.resources
 E:\VsProject\MyTest\MyTest\bin\Debug\MyTest.exe
 E:\VsProject\MyTest\MyTest\bin\Debug\MyTest.pdb
 E:\VsProject\MyTest\MyTest\obj\Debug\MyTest.csprojResolveAssemblyReference.cache
@@ -21,3 +20,4 @@ E:\VsProject\MyTest\MyTest\obj\Debug\MyTest.SignTest.resources
 E:\VsProject\MyTest\MyTest\obj\Debug\MyTest.csproj.GenerateResource.Cache
 E:\VsProject\MyTest\MyTest\obj\Debug\MyTest.exe
 E:\VsProject\MyTest\MyTest\obj\Debug\MyTest.pdb
+C:\Users\Aquars\Documents\Visual Studio 2013\Projects\MyTest\MyTest\obj\Debug\MyTest.csprojResolveAssemblyReference.cache

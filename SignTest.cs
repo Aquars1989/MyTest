@@ -71,6 +71,7 @@ namespace MyTest
                         if (_LinePoints.Count > 2)
                         {
                             _DrawPath.AddPolygon(GetLinePath(_LinePoints));
+                            _DrawPath.AddPolygon(GetLinePath(_LinePoints, 0.25F));
                         }
                         else
                         {
@@ -90,6 +91,7 @@ namespace MyTest
             if (_LinePoints != null && _LinePoints.Count > 2)
             {
                 e.Graphics.FillPolygon(Brushes.Black, GetLinePath(_LinePoints), FillMode.Winding);
+                e.Graphics.FillPolygon(Brushes.Black, GetLinePath(_LinePoints, 0.25F), FillMode.Winding);
             }
 
             _SWatch.Stop();
@@ -128,6 +130,7 @@ namespace MyTest
                 }
                 _Lines.Add(pots);
                 _DrawPath.AddPolygon(GetLinePath(pots));
+                _DrawPath.AddPolygon(GetLinePath(pots, 0.25F));
             }
 
             Invalidate();
@@ -148,15 +151,15 @@ namespace MyTest
                     writePots[0] = line[0];
                     for (int i = 1; i < line.Count; i++)
                     {
-                        writePots[i] = new Point(line[i].X - line[i - 1].X, line[i].Y - line[i - 1].Y); //紀錄下個點的位移值以縮減資料大小
+                        writePots[i] = new Point(line[i].X - line[i - 1].X, line[i].Y - line[i - 1].Y); // 紀錄下個點的位移值以縮減資料大小
                         minVal = Math.Min(minVal, line[i].X);
                         minVal = Math.Min(minVal, line[i].Y);
                         maxVal = Math.Max(maxVal, line[i].X);
                         maxVal = Math.Max(maxVal, line[i].Y);
                     }
 
-                    bool byteType = minVal >= sbyte.MinValue && maxVal <= sbyte.MaxValue; //資料是否可用sbyte紀錄
-                    msWriter.Write((short)(line.Count * (byteType ? 1 : -1)));            //如可用sbyte紀錄,紀錄列數為正數,否為負數
+                    bool byteType = minVal >= sbyte.MinValue && maxVal <= sbyte.MaxValue; // 資料是否可用sbyte紀錄
+                    msWriter.Write((short)(line.Count * (byteType ? 1 : -1)));            // 如可用sbyte紀錄,紀錄列數為正數,否為負數
                     for (int i = 0; i < writePots.Length; i++)
                     {
                         if (i > 0 && byteType)
@@ -235,6 +238,7 @@ namespace MyTest
 
                     _Lines.Add(pots);
                     _DrawPath.AddPolygon(GetLinePath(pots));
+                    _DrawPath.AddPolygon(GetLinePath(pots, 0.25F));
                 }
                 ms.Close();
                 br.Close();
@@ -256,33 +260,73 @@ namespace MyTest
             _Lines.Clear();
         }
 
-        private PointF[] GetLinePath(List<Point> points)
+        private PointF[] GetLinePath(List<Point> points, float scale = 1)
         {
             int potCot = points.Count;
             PointF[] result = new PointF[potCot * 2 - 2];
-            for (int i = 0; i < potCot; i++)
+
+            if (scale == 1)
             {
-                if (i == 0 || i == potCot - 1)
+                for (int i = 0; i < potCot; i++)
                 {
-                    result[i] = points[i];
+                    if (i == 0 || i == potCot - 1)
+                    {
+                        result[i] = points[i];
+                    }
+                    else
+                    {
+                        double dist = Math.Sqrt(Math.Pow(points[i - 1].X - points[i].X, 2) + Math.Pow(points[i - 1].Y - points[i].Y, 2));
+                        double lwid = dist / 8F;
+                        if (lwid > 1.3) lwid = 1.3;
+                        lwid = 2 - lwid;
+                        float dX = points[i + 1].X - points[i - 1].X;
+                        float dY = points[i + 1].Y - points[i - 1].Y;
+                        double roation = Math.Atan2(dY, dX) + (90 / 180D * Math.PI);
+                        float fxX = (float)(Math.Cos(roation) * lwid);
+                        float fxY = (float)(Math.Sin(roation) * lwid);
+                        float offsetX1 = points[i].X + fxX;
+                        float offsetY1 = points[i].Y + fxY;
+                        float offsetX2 = points[i].X - fxX;
+                        float offsetY2 = points[i].Y - fxY;
+                        result[i] = new PointF(offsetX1, offsetY1);
+                        result[result.Length - i] = new PointF(offsetX2, offsetY2);
+                    }
                 }
-                else
+            }
+            else
+            {
+                for (int i = 0; i < potCot; i++)
                 {
-                    double dist = Math.Sqrt(Math.Pow(points[i - 1].X - points[i].X, 2) + Math.Pow(points[i - 1].Y - points[i].Y, 2));
-                    double lwid = dist / 8F;
-                    if (lwid > 1.3) lwid = 1.3;
-                    lwid = 2 - lwid;
-                    float dX = points[i + 1].X - points[i - 1].X;
-                    float dY = points[i + 1].Y - points[i - 1].Y;
-                    double roation = Math.Atan2(dY, dX) + (90 / 180D * Math.PI);
-                    float fxX = (float)(Math.Cos(roation) * lwid);
-                    float fxY = (float)(Math.Sin(roation) * lwid);
-                    float offsetX1 = points[i].X + fxX;
-                    float offsetY1 = points[i].Y + fxY;
-                    float offsetX2 = points[i].X - fxX;
-                    float offsetY2 = points[i].Y - fxY;
-                    result[i] = new PointF(offsetX1, offsetY1);
-                    result[result.Length - i] = new PointF(offsetX2, offsetY2);
+                    if (i == 0 || i == potCot - 1)
+                    {
+                        result[i] = new PointF(points[i].X * scale, points[i].Y * scale);
+                    }
+                    else
+                    {
+                        float x0 = points[i - 1].X * scale;
+                        float x1 = points[i].X * scale;
+                        float x2 = points[i + 1].X * scale;
+                        float y0 = points[i - 1].Y * scale;
+                        float y1 = points[i].Y * scale;
+                        float y2 = points[i + 1].Y * scale;
+
+                        double dist = Math.Sqrt(Math.Pow(x0 - x1, 2) + Math.Pow(y0 - y1, 2));
+                        double lwid = dist / 8F / scale;
+                        if (lwid > 1.3) lwid =1.3;
+                        lwid = 2 - lwid;
+                        lwid *= scale;
+                        float dX = x2 - x0;
+                        float dY = y2 - y0;
+                        double roation = Math.Atan2(dY, dX) + (90 / 180D * Math.PI);
+                        float fxX = (float)(Math.Cos(roation) * lwid);
+                        float fxY = (float)(Math.Sin(roation) * lwid);
+                        float offsetX1 = x1 + fxX;
+                        float offsetY1 = y1 + fxY;
+                        float offsetX2 = x1 - fxX;
+                        float offsetY2 = y1 - fxY;
+                        result[i] = new PointF(offsetX1, offsetY1);
+                        result[result.Length - i] = new PointF(offsetX2 , offsetY2);
+                    }
                 }
             }
             return result;

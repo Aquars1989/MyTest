@@ -35,7 +35,7 @@ namespace MyTest
             {
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixel;
 
-                //0xF8FF 
+                // 0xF8FF 
                 for (int i = 0xE000; i <= 0xF848; i++)
                 {
                     string c = ((char)i).ToString();
